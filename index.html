@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070b1f">
+<title>Tonight, For You</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@300;400;500&display=swap">
+<style>
+/* One midnight sky. The moon rises on tap, the letter appears line by line, the last card carries her name. */
+:root {
+  --ink: #070b1f;
+  --ink-2: #0f1634;
+  --gold: #e9cf9b;
+  --gold-soft: rgba(233, 207, 155, 0.22);
+  --text: #f3ecdc;
+  --mute: #9aa3c7;
+  --rose: #e7a7a0;
+  --serif: "Cormorant Garamond", "Playfair Display", Georgia, "Times New Roman", serif;
+  --sans: "Jost", "Helvetica Neue", Arial, system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: linear-gradient(180deg, var(--ink-2) 0%, var(--ink) 70%);
+  color: var(--text);
+  font-family: var(--sans);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+#app { height: 100%; }
+#stars { position: fixed; inset: 0; pointer-events: none; }
+.star {
+  position: absolute; border-radius: 50%; background: #fff;
+  opacity: .2; animation: tw var(--d, 4s) ease-in-out var(--l, 0s) infinite alternate;
+}
+@keyframes tw { to { opacity: var(--o, .9); } }
+
+.stage {
+  position: relative; z-index: 1; height: 100%; max-width: 460px; margin: 0 auto;
+  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  display: flex; flex-direction: column; text-align: center;
+}
+.sky { position: relative; flex: 1 1 auto; min-height: 0; }
+.moon-wrap {
+  position: absolute; left: 50%; top: 6%; width: min(58vw, 240px); aspect-ratio: 1;
+  transform: translate3d(-50%, 22vh, 0) scale(.72);
+  opacity: .25;
+  transition: transform 3.4s cubic-bezier(.22,.7,.2,1), opacity 2.2s ease;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+.foot, .copy { position: relative; z-index: 2; }
+.halo {
+  position: absolute; inset: -55%;
+  background: radial-gradient(circle, rgba(233,207,155,.34) 0%, rgba(233,207,155,.12) 28%, rgba(233,207,155,0) 62%);
+}
+.moon {
+  position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255,255,255,.9), rgba(255,255,255,0) 40%),
+    radial-gradient(circle at 62% 66%, rgba(180,150,95,.28), rgba(180,150,95,0) 34%),
+    radial-gradient(circle at 50% 50%, #f7ebcf 0%, #e9cf9b 100%);
+}
+.risen .moon-wrap { transform: translate3d(-50%, 0, 0) scale(1); opacity: 1; }
+
+.copy { flex: 0 0 auto; min-height: 210px; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 0 4px; }
+.eyebrow { margin: 0; font-size: .72rem; letter-spacing: .32em; text-transform: uppercase; color: var(--gold); animation: up 1.2s ease both; }
+.line { margin: 0; font-family: var(--serif); font-style: italic; font-weight: 400; font-size: clamp(1.45rem, 6.2vw, 1.85rem); line-height: 1.42; text-wrap: balance; animation: up 1.3s ease both; }
+.line b { font-weight: 500; font-style: normal; color: var(--gold); }
+.title { margin: 0; font-family: var(--serif); font-weight: 500; font-size: clamp(2rem, 9.5vw, 2.8rem); line-height: 1.1; animation: up 1.5s ease both; }
+.title em { display: block; margin-top: 6px; font-style: italic; font-weight: 400; color: var(--gold); }
+.sub { margin: 0; color: var(--mute); font-size: .95rem; letter-spacing: .02em; animation: up 2s ease both; }
+.sign { margin: 6px 0 0; font-family: var(--serif); font-style: italic; font-size: 1.3rem; color: var(--rose); animation: up 2.6s ease both; }
+
+.foot { flex: 0 0 auto; padding-top: 14px; min-height: 92px; }
+.dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; }
+.dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--gold-soft); transition: background .4s, transform .4s; }
+.dots i.on { background: var(--gold); transform: scale(1.3); }
+.btn {
+  appearance: none; cursor: pointer; font: 400 .85rem var(--sans); letter-spacing: .24em; text-transform: uppercase;
+  color: var(--gold); background: transparent; border: 1px solid rgba(233,207,155,.5);
+  padding: 15px 34px; min-height: 48px; border-radius: 2px; transition: background .3s, color .3s;
+}
+.btn:hover { background: var(--gold); color: var(--ink); }
+.btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+.btn[hidden] { display: none; }
+
+.float { position: fixed; bottom: -10px; width: 4px; height: 4px; border-radius: 50%; background: var(--gold); opacity: 0; animation: fl var(--t, 9s) linear var(--w, 0s) infinite; z-index: 0; }
+@keyframes fl { 0% { transform: translate3d(0,0,0); opacity: 0; } 12% { opacity: .85; } 100% { transform: translate3d(var(--x, 20px), -105vh, 0); opacity: 0; } }
+@keyframes up { from { opacity: 0; transform: translate3d(0,12px,0); } to { opacity: 1; transform: none; } }
+
+/* maker */
+.maker { position: relative; z-index: 1; height: 100%; overflow-y: auto; padding: max(28px, env(safe-area-inset-top)) 20px 40px; }
+.maker-in { max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.maker h1 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 2.2rem; line-height: 1.1; }
+.maker h1 em { color: var(--gold); font-weight: 400; }
+.maker p { margin: 0; color: var(--mute); font-size: .95rem; line-height: 1.5; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: .7rem; letter-spacing: .24em; text-transform: uppercase; color: var(--gold); }
+.field input, .field select, .field textarea {
+  font: 400 1rem var(--sans); color: var(--text); background: rgba(255,255,255,.04);
+  border: 1px solid rgba(233,207,155,.28); border-radius: 2px; padding: 13px 14px; width: 100%;
+}
+.field textarea { min-height: 84px; resize: vertical; }
+.field select option { color: #111; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.out { display: none; flex-direction: column; gap: 10px; }
+.out.show { display: flex; }
+.out input { font-size: .85rem; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row .btn { flex: 1 1 140px; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+@media (prefers-reduced-motion: reduce) {
+  .moon-wrap { transition-duration: .01s; }
+  .star, .float, .line, .eyebrow, .title, .sub, .sign { animation: none; }
+}
+</style>
+</head>
+<body>
+<div id="stars" aria-hidden="true"></div>
+<div id="app"></div>
+
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var to = (q.get("to") || "").trim();
+  var from = (q.get("from") || "").trim();
+  var lang = q.get("lang") === "hi" ? "hi" : "en";
+  var custom = (q.get("msg") || "").trim();
+  var app = document.getElementById("app");
+
+  /* ---------- stars ---------- */
+  var sky = document.getElementById("stars");
+  var n = Math.min(80, Math.round(window.innerWidth * window.innerHeight / 9000));
+  for (var k = 0; k < n; k++) {
+    var s = document.createElement("div");
+    var size = Math.random() * 1.8 + 0.6;
+    s.className = "star";
+    s.style.cssText = "left:" + (Math.random() * 100) + "%;top:" + (Math.random() * 100) + "%;width:" + size + "px;height:" + size + "px;--d:" + (3 + Math.random() * 4).toFixed(1) + "s;--l:-" + (Math.random() * 6).toFixed(1) + "s;--o:" + (0.5 + Math.random() * 0.5).toFixed(2);
+    sky.appendChild(s);
+  }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  /* ---------- maker (no ?to=) ---------- */
+  if (!to) { buildMaker(); return; }
+
+  /* ---------- experience ---------- */
+  var T = {
+    en: [
+      { eyebrow: "Karwa Chauth · Tonight", line: function () { return [to + ", look up.", " Tonight feels a little different."]; }, btn: "Call the moon", rise: false },
+      { line: function () { return ["All day you chose me, quietly and patiently, without asking for anything in return."]; }, btn: "Continue", rise: true },
+      { line: function () { return ["I don’t say it often enough. You are the calm in my loudest days, and the reason home feels like home."]; }, btn: "Continue", rise: true },
+      { line: function () { return [custom || "When you look at the moon tonight, know that I am wishing for the very same thing: you, in every lifetime."]; }, btn: "Continue", rise: true },
+      { final: true, rise: true, t1: "Happy Karwa Chauth,", sub: "Now, have some water first, my love.", sign: function () { return from ? "Always yours, " + from : "Always yours"; } }
+    ],
+    hi: [
+      { eyebrow: "Karwa Chauth · Aaj ki raat", line: function () { return [to + ", zara upar dekho.", " Aaj ki raat kuch khaas hai."]; }, btn: "Chaand ko bulao", rise: false },
+      { line: function () { return ["Poora din tumne mere liye intezaar kiya, bina kuch maange, bina kuch kahe."]; }, btn: "Aage", rise: true },
+      { line: function () { return ["Main kehta kam hu, par tum meri sabse shaant subah ho aur sabse khoobsurat raat."]; }, btn: "Aage", rise: true },
+      { line: function () { return [custom || "Aaj jab tum chaand ko dekhogi, jaan lena, main bhi wahi maang raha hu: tum, har janam mein."]; }, btn: "Aage", rise: true },
+      { final: true, rise: true, t1: "Happy Karwa Chauth,", sub: "Ab pehle paani pi lo, meri jaan.", sign: function () { return from ? "Hamesha tumhara, " + from : "Hamesha tumhara"; } }
+    ]
+  };
+  var steps = T[lang];
+  document.title = "For " + to;
+
+  var stage = el("main", "stage");
+  var skyEl = el("div", "sky");
+  var mw = el("div", "moon-wrap");
+  mw.appendChild(el("div", "halo"));
+  mw.appendChild(el("div", "moon"));
+  skyEl.appendChild(mw);
+  var copy = el("div", "copy");
+  copy.setAttribute("aria-live", "polite");
+  var foot = el("div", "foot");
+  var dots = el("div", "dots");
+  steps.forEach(function () { dots.appendChild(el("i")); });
+  var btn = el("button", "btn");
+  btn.type = "button";
+  foot.appendChild(dots); foot.appendChild(btn);
+  stage.appendChild(skyEl); stage.appendChild(copy); stage.appendChild(foot);
+  app.appendChild(stage);
+
+  var i = 0;
+  function render() {
+    var s = steps[i];
+    copy.textContent = "";
+    Array.prototype.forEach.call(dots.children, function (d, idx) { d.className = idx <= i ? "on" : ""; });
+    stage.classList.toggle("risen", !!s.rise);
+    if (s.final) {
+      var h = el("h1", "title", s.t1);
+      h.appendChild(el("em", "", to));
+      copy.appendChild(h);
+      copy.appendChild(el("p", "sub", s.sub));
+      copy.appendChild(el("p", "sign", s.sign()));
+      btn.hidden = true;
+      floaters();
+    } else {
+      if (s.eyebrow) copy.appendChild(el("p", "eyebrow", s.eyebrow));
+      var parts = s.line();
+      var p = el("p", "line");
+      if (i === 0) { p.appendChild(el("b", "", parts[0])); p.appendChild(document.createTextNode(parts[1])); }
+      else { p.textContent = parts[0]; }
+      copy.appendChild(p);
+      btn.textContent = s.btn;
+      btn.hidden = false;
+    }
+  }
+  btn.addEventListener("click", function () { if (i < steps.length - 1) { i++; render(); } });
+  render();
+
+  function floaters() {
+    if (document.querySelector(".float")) return;
+    for (var k = 0; k < 14; k++) {
+      var f = el("div", "float");
+      f.style.cssText = "left:" + (Math.random() * 100) + "%;--t:" + (8 + Math.random() * 7).toFixed(1) + "s;--w:" + (Math.random() * 6).toFixed(1) + "s;--x:" + ((Math.random() - 0.5) * 80).toFixed(0) + "px";
+      document.body.appendChild(f);
+    }
+  }
+
+  /* ---------- maker ---------- */
+  function buildMaker() {
+    var wrap = el("div", "maker");
+    var inn = el("div", "maker-in");
+    var h = el("h1"); h.appendChild(document.createTextNode("Make her a "));
+    h.appendChild(el("em", "", "moonlit surprise."));
+    inn.appendChild(h);
+    inn.appendChild(el("p", "", "Fill this in once. You get a private link with her name on it. When she opens it, the moon rises for her."));
+
+    function field(id, label, node) {
+      var f = el("div", "field");
+      var l = el("label", "", label); l.htmlFor = id;
+      node.id = id; f.appendChild(l); f.appendChild(node); return f;
+    }
+    var inTo = el("input"); inTo.type = "text"; inTo.placeholder = "Her name"; inTo.autocomplete = "off";
+    var inFrom = el("input"); inFrom.type = "text"; inFrom.placeholder = "Your name (shown at the end)"; inFrom.autocomplete = "off";
+    var inLang = el("select");
+    [["en", "English"], ["hi", "Hinglish"]].forEach(function (o) { var op = el("option", "", o[1]); op.value = o[0]; inLang.appendChild(op); });
+    var inMsg = el("textarea"); inMsg.placeholder = "Optional: replace the third line with your own words";
+    inn.appendChild(field("fTo", "Her name", inTo));
+    inn.appendChild(field("fFrom", "Your name", inFrom));
+    inn.appendChild(field("fLang", "Language", inLang));
+    inn.appendChild(field("fMsg", "Your own line", inMsg));
+
+    var make = el("button", "btn", "Create her link"); make.type = "button";
+    inn.appendChild(make);
+
+    var out = el("div", "out");
+    var outIn = el("input"); outIn.type = "text"; outIn.readOnly = true; outIn.id = "fOut";
+    out.appendChild(outIn);
+    var row = el("div", "row");
+    var cp = el("button", "btn", "Copy link"); cp.type = "button";
+    var pv = el("a", "btn", "Preview"); pv.target = "_blank"; pv.rel = "noopener";
+    row.appendChild(cp); row.appendChild(pv);
+    out.appendChild(row);
+    var note = el("p", "", ""); out.appendChild(note);
+    inn.appendChild(out);
+
+    make.addEventListener("click", function () {
+      var name = inTo.value.trim();
+      if (!name) { inTo.focus(); return; }
+      var u = new URL(location.href);
+      u.search = ""; u.hash = "";
+      u.searchParams.set("to", name);
+      if (inFrom.value.trim()) u.searchParams.set("from", inFrom.value.trim());
+      if (inLang.value === "hi") u.searchParams.set("lang", "hi");
+      if (inMsg.value.trim()) u.searchParams.set("msg", inMsg.value.trim());
+      outIn.value = u.toString();
+      pv.href = u.toString();
+      note.textContent = "Send this exact link on WhatsApp, at the time the moon rises.";
+      out.classList.add("show");
+    });
+    cp.addEventListener("click", function () {
+      var done = function () { cp.textContent = "Copied"; setTimeout(function () { cp.textContent = "Copy link"; }, 1600); };
+      var fallback = function () { outIn.focus(); outIn.select(); try { document.execCommand("copy"); done(); } catch (e) {} };
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(outIn.value).then(done, fallback); } else { fallback(); }
+    });
+    wrap.appendChild(inn);
+    app.appendChild(wrap);
+  }
+})();
+</script>
+</body>
+</html>
